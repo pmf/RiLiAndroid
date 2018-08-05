@@ -21,7 +21,7 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,8 +32,9 @@
 
 /*** Variables Globales ***/
 /**************************/
+extern void DoRender();
+extern SDL_Renderer *renderer;
 extern SDL_Surface *sdlVideo;
-extern SDL_VideoInfo *sdlVideoInfo;
 extern Uint32 FontColor;
 extern Sprite *Sprites;
 extern int NSprites;
@@ -65,7 +66,7 @@ void AfficheChargeur()
       Old=NumAf;
       NumAf=i;
       Sprites[chargeur].Affiche(400,300,NumAf);
-      SDL_Flip(sdlVideo);
+      DoRender();
       if(Old!=-1) Sprites[chargeur].Efface(400,300,Old,sdlVideo);
     }
   }
@@ -84,7 +85,7 @@ bool LoadLangue()
   strcpy(PathFile,Langue[Pref.Langue]);
   GetPath(PathFile);
   if(FileExiste(PathFile)==false) {
-    cerr <<"Impossible de trouver "<<Langue[Pref.Langue]<<endl;
+    std::cerr <<"Impossible de trouver "<<Langue[Pref.Langue]<<std::endl;
     return false;
   }
   L=ChargeFichier(PathFile,Buf);
@@ -128,7 +129,7 @@ bool LoadSprites()
   // *** Charge le fichier des langues ***
   // *************************************
   if(FileExiste(PathFile)==false) {
-    cerr <<"Impossible de trouver 'language.dat'"<<endl;
+    std::cerr <<"Impossible de trouver 'language.dat'"<<std::endl;
     return false;
   }
   L=ChargeFichier(PathFile,Buf);
@@ -163,7 +164,7 @@ bool LoadSprites()
   strcpy(PathFile,"sprites.dat");
   GetPath(PathFile);
   if(FileExiste(PathFile)==false) {
-    cerr <<"Impossible de trouver 'sprites.dat'"<<endl;
+    std::cerr <<"Impossible de trouver 'sprites.dat'"<<std::endl;
     return false;
   }
   L=ChargeFichier(PathFile,Buf);
@@ -349,10 +350,17 @@ bool Sprite::Load(unsigned char *Buf,long &P)
     P+=2;
     
     // Fabrique la surface
-    Image[i]=SDL_CreateRGBSurface((Dim[i].bpp-3)*SDL_SRCALPHA,Dim[i].L,Dim[i].H,Dim[i].bpp*8,
-				  0xff,0xff00,0xff0000,0xff000000*(Dim[i].bpp-3));
+    Image[i]=SDL_CreateRGBSurface(
+		0,
+		Dim[i].L,
+		Dim[i].H,
+		Dim[i].bpp*8,
+		0xff,
+		0xff00,
+		0xff0000,
+		0xff000000*(Dim[i].bpp-3));
     if(Image[i]<=NULL) {
-      cerr <<"Impossible de créer une Surface SDL!"<<endl;
+      std::cerr <<"Impossible de créer une Surface SDL!"<<std::endl;
       return false;
     }
     
@@ -374,11 +382,9 @@ bool Sprite::Load(unsigned char *Buf,long &P)
     SDL_UnlockSurface(Image[i]);
     
     // Si peut la mettre en surface Hardware
-    if(sdlVideoInfo->blit_hw_A) {
-      SDL_Surface *Provi=SDL_ConvertSurface(Image[i],Image[i]->format,SDL_HWSURFACE);
-      SDL_FreeSurface(Image[i]);
-      Image[i]=Provi;
-    }
+    SDL_Surface *Provi=SDL_ConvertSurface(Image[i], Image[i]->format, 0);
+    SDL_FreeSurface(Image[i]);
+    Image[i]=Provi;
   }
   
   return true;
@@ -483,10 +489,17 @@ bool Sprite::Nouveau(int Lx,int Ly)
   Dim[0].bpp=3; // Pas de transparence
      
   // Fabrique la surface
-  Image[0]=SDL_CreateRGBSurface((Dim[0].bpp-3)*SDL_SRCALPHA,Dim[0].L,Dim[0].H,Dim[0].bpp*8,
-				0xff,0xff00,0xff0000,0xff000000*(Dim[0].bpp-3));
+  Image[0]=SDL_CreateRGBSurface(
+	  0,
+	  Dim[0].L,
+	  Dim[0].H,
+	  Dim[0].bpp*8,
+	  0xff,
+	  0xff00,
+	  0xff0000,
+	  0xff000000*(Dim[0].bpp-3));
   if(Image[0]<=NULL) {
-    cerr <<"Impossible de créer une Surface SDL!"<<endl;
+    std::cerr <<"Impossible de créer une Surface SDL!"<<std::endl;
     return false;
   }
   return true;

@@ -25,12 +25,12 @@
 #include <windows.h>
 #endif
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #include "editeur.h"
 #include "menu.h"
@@ -40,6 +40,8 @@
 
 /*** Variables globales ***/
 /**************************/
+extern void DoRender();
+extern SDL_Renderer *renderer;
 extern SDL_Surface *sdlVideo;
 
 extern Sprite *Sprites;
@@ -75,7 +77,7 @@ eMenu Editeur::SDLMain(int NumNiv)
   NumN=NumNiv;
 
   Affiche(); // Charge le tableau
-  SDL_Flip(sdlVideo);
+  DoRender();
   
   Horloge=SDL_GetTicks(); // Prend l'horloge
   
@@ -90,9 +92,9 @@ eMenu Editeur::SDLMain(int NumNiv)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) Affiche();
-	break;
+	  case SDL_WINDOWEVENT_ENTER:
+		  Affiche();
+		  break;
       case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
 	  if(event.key.keysym.sym==SDLK_ESCAPE) return mMenu;
@@ -198,7 +200,7 @@ eMenu Editeur::SDLMain(int NumNiv)
 
     // Fait l'affichage
     Affiche();
-    SDL_Flip(sdlVideo);
+	DoRender();
     
   } while(true);
   
@@ -374,7 +376,7 @@ void Editeur::PrendTouche(int Tou)
     
     // Sauve le niveau
     if(Niveau.Save()==false) {
-      cerr <<"ERREUR Saving levels!"<<endl;
+      std::cerr <<"ERREUR Saving levels!"<<std::endl;
       exit(-1);
     }
     

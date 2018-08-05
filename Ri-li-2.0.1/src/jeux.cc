@@ -25,12 +25,12 @@
 #include <windows.h>
 #endif
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #include "jeux.h"
 #include "ecran.h"
@@ -40,6 +40,8 @@
 
 /*** Variables globales ***/
 /**************************/
+extern void DoRender();
+extern SDL_Renderer *renderer;
 extern SDL_Surface *sdlVideo;
 
 extern Sprite *Sprites;
@@ -83,7 +85,7 @@ eMenu Jeux::SDLMain(void)
   Help=true;
   Load(NumN); // Charge le tableau
   Ec[NumVideo].Cls(fjeu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   NumVideo=(NumVideo+1)&1;
   Ec[NumVideo].Cls(fjeu);
   Pause=true;
@@ -101,17 +103,15 @@ eMenu Jeux::SDLMain(void)
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  Ec[NumVideo].Cls(fjeu);
-	  SDL_Flip(sdlVideo);
-	  NumVideo=(NumVideo+1)&1;
-	  Ec[NumVideo].Cls(fjeu);
-	}
-	else { // Si désactive l'ecran
-	  Pause=true; // Met en Pause
-	}
-	break;
+      case SDL_WINDOWEVENT_ENTER:
+		Ec[NumVideo].Cls(fjeu);
+		DoRender();
+		NumVideo=(NumVideo+1)&1;
+		Ec[NumVideo].Cls(fjeu);
+		break;
+	  case SDL_WINDOWEVENT_LEAVE:
+		Pause=true; // Met en Pause
+		break;
       case SDL_MOUSEBUTTONDOWN:
 	if(event.button.state==SDL_PRESSED) TourneFleche();
 	break;
@@ -122,7 +122,7 @@ eMenu Jeux::SDLMain(void)
 	    if(mRet==mJeux) {
 	      DrawLevel(NumN);
 	      Ec[NumVideo].Cls(fjeu);
-	      SDL_Flip(sdlVideo);
+		  DoRender();
 	      NumVideo=(NumVideo+1)&1;
 	      Ec[NumVideo].Cls(fjeu);
 	      Pause=true;
@@ -186,7 +186,7 @@ eMenu Jeux::SDLMain(void)
     
     // Fait l'affichage
     AfficheEcran();
-    SDL_Flip(sdlVideo);
+	DoRender();
 
     NumVideo=(NumVideo+1)&1;    
 
@@ -204,11 +204,11 @@ eMenu Jeux::SDLMain(void)
 	}
 	if(Pref.NiveauMax<NumN) Pref.NiveauMax=NumN;
       }
-      Sons.NextMusic();
+      //Sons.NextMusic();
       Load(NumN);              // Recharge le tableau
       Ec[NumVideo].Cls(fjeu);
-      SDL_Flip(sdlVideo);
-      NumVideo=(NumVideo+1)&1;
+	  DoRender();
+	  NumVideo=(NumVideo+1)&1;
       Ec[NumVideo].Cls(fjeu);
       DureeJeu=0;
       Pause=true;

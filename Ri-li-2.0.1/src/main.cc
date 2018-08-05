@@ -23,10 +23,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include <string.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+#include <SDL.h>
+//#include <SDL_mixer.h>
 
 #include "preference.h"
 #include "jeux.h"
@@ -42,7 +42,6 @@
 /*** Variables globales ***/
 /************************/
 SDL_Surface *sdlVideo; // Pointe sur l'écran video
-SDL_VideoInfo *sdlVideoInfo; // Infos sur la video
 Uint32 FontColor;      // Couleur du fond d'écran
 
 char Titre[]="Ri-li V2.0.1";
@@ -99,11 +98,9 @@ void InitPref(void)
 
 /*** Preogramme principale ***/
 /*****************************/
-int main(int narg,char *argv[])
+int main2(int narg,char *argv[])
 {
   int i;
-  char **pTitre=NULL;
-  char **pIcon=NULL;
   Sprite Spr;
   eMenu RetM,RetMenu=mMenu;
 
@@ -115,25 +112,16 @@ int main(int narg,char *argv[])
  
   // Initilise SDL
   if( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE) < 0 ) {
-    cerr <<"Impossible d'initialiser SDL:"<<SDL_GetError()<<endl;
+    std::cerr <<"Impossible d'initialiser SDL:"<<SDL_GetError()<<std::endl;
     exit(-1);
   }
   // Ferme le programme correctement quant quit
   atexit(SDL_Quit);
     
-  // Teste la resolution video
-  sdlVideoInfo=(SDL_VideoInfo*)SDL_GetVideoInfo();
-
-  if(sdlVideoInfo->vfmt->BitsPerPixel==8) {
-    cerr <<"Impossible d'utiliser 8bits pour la vidéo !"<<endl;
-    exit(-1);
-  }
-  
+ 
   // Demande la resolution Video
 #ifndef LINUX
-  int vOption;
-  if(Pref.FullScreen)   vOption=SDL_SWSURFACE; // Bug accé aux bits pour les cordes
-  else  vOption=SDL_SWSURFACE|SDL_DOUBLEBUF;
+  int vOption=SDL_WINDOW_OPENGL;
 #else
 #ifndef __AMIGAOS4__
   int vOption=SDL_SWSURFACE|SDL_DOUBLEBUF;
@@ -141,18 +129,22 @@ int main(int narg,char *argv[])
   int vOption=SDL_SWSURFACE;
 #endif
 #endif
-  if(Pref.FullScreen) vOption|=SDL_FULLSCREEN;
-  sdlVideo=SDL_SetVideoMode(800,600,sdlVideoInfo->vfmt->BitsPerPixel,vOption);
+  if(Pref.FullScreen) vOption|=SDL_WINDOW_FULLSCREEN;
 
-  if(sdlVideo==NULL) {
-    cerr <<"Impossible de passer dans le mode vidéo 800x600 !"<<endl;
+  SDL_Window *screen = SDL_CreateWindow(
+                          Titre,
+                          SDL_WINDOWPOS_UNDEFINED,
+                          SDL_WINDOWPOS_UNDEFINED,
+                          800, 600,
+                          SDL_WINDOW_FULLSCREEN);
+
+  if(screen==NULL) {
+    std::cerr <<"Impossible de passer dans le mode vidéo 800x600 !"<<std::endl;
     exit(-1);
   }
+
   // Change le nom de la fenetre
-  SDL_WM_GetCaption(pTitre,pIcon);
-  SDL_WM_SetCaption(Titre,NULL);
   SDL_ShowCursor(0); // Masque le curseur
-  SDL_EnableUNICODE(1);
 
   // Couleur du font d'écran
   FontColor=SDL_MapRGB(sdlVideo->format,128,128,128);

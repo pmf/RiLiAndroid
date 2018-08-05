@@ -21,7 +21,7 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,9 +38,11 @@
 /**************************/
 extern int Horloge;
 extern int HorlogeAvant;
+extern void DoRender();
 extern SDL_Surface *sdlVideo;
 extern Sprite *Sprites;
 extern Mouse Sourie;
+extern SDL_Renderer *renderer;
 extern Ecran Ec[2];
 extern sPreference Pref;
 extern Audio Sons;
@@ -83,41 +85,6 @@ void AddBouton(int Num,e_Sprite NumSp,int X,int Y)
   Menu_Py[Num].Valide=true;
 }
 
-/*** Change le vidéo ***/
-/***********************/
-void ChangeVideo(void)
-{
-  SDL_VideoInfo *sdlVideoInfo;
-
-  // Teste la resolution video
-  sdlVideoInfo=(SDL_VideoInfo*)SDL_GetVideoInfo();
-  if(sdlVideoInfo->vfmt->BitsPerPixel==8) {
-    cerr <<"Impossible d'utiliser 8bits pour la vidéo !"<<endl;
-    exit(-1);
-  }
-  
-  // Demande la resolution Video
-#ifndef LINUX
-  int vOption;
-  if(Pref.FullScreen)   vOption=SDL_SWSURFACE; // Bug accé aux bits pour les cordes
-  else  vOption=SDL_SWSURFACE|SDL_DOUBLEBUF;
-#else
-#ifndef __AMIGAOS4__
-  int vOption=SDL_SWSURFACE|SDL_DOUBLEBUF;
-#else
-  int vOption=SDL_SWSURFACE;
-#endif
-#endif
-
-  if(Pref.FullScreen) vOption|=SDL_FULLSCREEN;
-  sdlVideo=SDL_SetVideoMode(800,600,sdlVideoInfo->vfmt->BitsPerPixel,vOption);
-  if(sdlVideo==NULL) {
-    cerr <<"Impossible de passer dans le mode vidéo 800x600 !"<<endl;
-    exit(-1);
-  }
-  
-  SDL_ShowCursor(0); // Cache le curseur
-}
 
 /*** SDL Main Menu principale ***/
 /********************************/
@@ -150,7 +117,7 @@ eMenu Menu::SDLMain(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -159,17 +126,15 @@ eMenu Menu::SDLMain(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mQuit;
@@ -199,7 +164,7 @@ eMenu Menu::SDLMain(void)
 	    }
 	    break;
 	  default:
-	    key=event.key.keysym.unicode&0x7F; // Prend le caracataire correspondant à la touche
+	    key=event.key.keysym.scancode&0x7F; // Prend le caracataire correspondant à la touche
 	    if(CharExiste(key)==true) { // Si la caractaire existe bien
 	      for(i=2;i>=0;i--) MCode[i+1]=MCode[i]; // décale le code
 	      MCode[0]=key;
@@ -225,8 +190,8 @@ eMenu Menu::SDLMain(void)
     Sourie.Affiche(NumEc);
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -271,7 +236,7 @@ eMenu Menu::SDLMain_Langue(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -280,17 +245,15 @@ eMenu Menu::SDLMain_Langue(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    if(Pref.Langue==-1) Pref.Langue=PyE;
@@ -340,8 +303,8 @@ eMenu Menu::SDLMain_Langue(void)
     Sourie.Affiche(NumEc);
 
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -416,7 +379,7 @@ void Menu::InitMain_Options(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
 }
   
@@ -435,17 +398,15 @@ eMenu Menu::SDLMain_Options(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mMenu;
@@ -454,7 +415,6 @@ eMenu Menu::SDLMain_Options(void)
 	    case 2:
 	      if(Pref.FullScreen==false) {
 		Pref.FullScreen=true;
-		ChangeVideo();
 		InitMain_Options();
 		PyE=2;
 	      }
@@ -464,15 +424,15 @@ eMenu Menu::SDLMain_Options(void)
 	    case 6:
 	      Pref.Volume-=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.Volume<0) Pref.Volume=0;
-	      Sons.DoVolume();
-	      Sons.Play(sLive);
+	      //Sons.DoVolume();
+	      //Sons.Play(sLive);
 	      break;
 	    case 1:
 	    case 7: // Diminue volume music
 	    case 8:
 	      Pref.VolumeM-=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.VolumeM<0) Pref.VolumeM=0;
-	      Sons.DoVolume();
+	      //Sons.DoVolume();
 	      break;
 	    }
 	    break;
@@ -481,7 +441,6 @@ eMenu Menu::SDLMain_Options(void)
 	    case 2:
 	      if(Pref.FullScreen==true) {
 		Pref.FullScreen=false;
-		ChangeVideo();
 		InitMain_Options();
 		PyE=2;
 	      }
@@ -491,15 +450,15 @@ eMenu Menu::SDLMain_Options(void)
 	    case 6:
 	      Pref.Volume+=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.Volume>SDL_MIX_MAXVOLUME) Pref.Volume=SDL_MIX_MAXVOLUME;
-	      Sons.DoVolume();
-	      Sons.Play(sLive);
+	      //Sons.DoVolume();
+	      //Sons.Play(sLive);
 	      break;
 	    case 1:
 	    case 7:
        	    case 8:
 	      Pref.VolumeM+=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.VolumeM>SDL_MIX_MAXVOLUME) Pref.VolumeM=SDL_MIX_MAXVOLUME;
-	      Sons.DoVolume();
+	      //Sons.DoVolume();
 	      break;
 	    }
 	    break;
@@ -523,7 +482,6 @@ eMenu Menu::SDLMain_Options(void)
 	      break;
 	    case 2: // Type d'affichage
 	      Pref.FullScreen=(Pref.FullScreen+1)&1;
-	      ChangeVideo();
 	      InitMain_Options();
 	      PyE=2;
 	      break;
@@ -535,24 +493,24 @@ eMenu Menu::SDLMain_Options(void)
 	    case 5: // Diminue volume sons
 	      Pref.Volume-=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.Volume<0) Pref.Volume=0;
-	      Sons.DoVolume();
-	      Sons.Play(sLive);
+	      //Sons.DoVolume();
+	      //Sons.Play(sLive);
 	      break;
 	    case 6:
 	      Pref.Volume+=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.Volume>SDL_MIX_MAXVOLUME) Pref.Volume=SDL_MIX_MAXVOLUME;
-	      Sons.DoVolume();
-	      Sons.Play(sLive);
+	      //Sons.DoVolume();
+	      //Sons.Play(sLive);
 	      break;
 	    case 7: // Diminue volume music
 	      Pref.VolumeM-=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.VolumeM<0) Pref.VolumeM=0;
-	      Sons.DoVolume();
+	      //Sons.DoVolume();
 	      break;
 	    case 8:
 	      Pref.VolumeM+=SDL_MIX_MAXVOLUME/10.0;
 	      if(Pref.VolumeM>SDL_MIX_MAXVOLUME) Pref.VolumeM=SDL_MIX_MAXVOLUME;
-	      Sons.DoVolume();
+	      //Sons.DoVolume();
 	      break;
 	    default:
 	      return mMenu;
@@ -637,8 +595,8 @@ eMenu Menu::SDLMain_Options(void)
     Sourie.Affiche(NumEc);
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -669,7 +627,7 @@ eMenu Menu::SDLMain_Speed(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -678,17 +636,15 @@ eMenu Menu::SDLMain_Speed(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
+      case SDL_WINDOWEVENT_ENTER:
+		NumEc=0;
+		Ec[1].Cls(fmenu);
+		DoRender();
+		Ec[0].Cls(fmenu);
+		break;
       case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mMenu;
@@ -738,8 +694,8 @@ eMenu Menu::SDLMain_Speed(void)
     Sourie.Affiche(NumEc);
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -778,7 +734,7 @@ eMenu Menu::SDLMain_Niveau(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -787,17 +743,15 @@ eMenu Menu::SDLMain_Niveau(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mMenu;
@@ -876,8 +830,8 @@ eMenu Menu::SDLMain_Niveau(void)
     Sourie.Affiche(NumEc);
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -940,7 +894,7 @@ eMenu Menu::SDLMain_HR(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -949,17 +903,15 @@ eMenu Menu::SDLMain_HR(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(Fini==-1 && event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mJeux;
@@ -987,12 +939,12 @@ eMenu Menu::SDLMain_HR(void)
 	  case SDLK_KP_ENTER:
 	    switch(PyE) {
 	    case 0:
-	      Sons.Play(sEnd);
+	      //Sons.Play(sEnd);
 	      Pref.Score+=50;
 	      Fini=Horloge+2000;
 	      break;
 	    case 1:
-	      Sons.Play(sLose);
+	      //Sons.Play(sLose);
 	      Fini=Horloge+2000;
 	      break;
 	    }
@@ -1043,8 +995,8 @@ eMenu Menu::SDLMain_HR(void)
     }
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
 
@@ -1081,7 +1033,7 @@ void Menu::Affiche_InGame(void)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
 }
 
@@ -1097,17 +1049,15 @@ eMenu Menu::SDLMain_InGame(void)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN:
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN:
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  switch(event.key.keysym.sym) {
 	  case SDLK_ESCAPE:
 	    return mJeux;
@@ -1157,8 +1107,8 @@ eMenu Menu::SDLMain_InGame(void)
     Sourie.Affiche(NumEc);
     
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   
@@ -1225,7 +1175,7 @@ eMenu Menu::SDLMain_Score(bool EditScore)
   // Efface le fond
   NumEc=0;
   Ec[1].Cls(fmenu);
-  SDL_Flip(sdlVideo);
+  DoRender();
   Ec[0].Cls(fmenu);
   
   // Prend les evenements
@@ -1234,17 +1184,15 @@ eMenu Menu::SDLMain_Score(bool EditScore)
     while(SDL_PollEvent(&event)) {
       Sourie.GetEvent(event,PyE); // Prend les evenements de la sourie
       switch(event.type) {
-      case SDL_ACTIVEEVENT:
-	if(event.active.gain==1) {
-	  NumEc=0;
-	  Ec[1].Cls(fmenu);
-	  SDL_Flip(sdlVideo);
-	  Ec[0].Cls(fmenu);
-	}
-	break;
-      case SDL_KEYDOWN: // Prend un touche au clavier
+	  case SDL_WINDOWEVENT_ENTER:
+		  NumEc = 0;
+		  Ec[1].Cls(fmenu);
+		  DoRender();
+		  Ec[0].Cls(fmenu);
+		  break;
+	  case SDL_KEYDOWN: // Prend un touche au clavier
 	if(event.key.state==SDL_PRESSED) {
-	  Sons.Play(sClic);
+	  //Sons.Play(sClic);
 	  if(EditScore==false && event.key.keysym.sym!=SDLK_F12) event.key.keysym.sym=SDLK_RETURN;
 	  switch(event.key.keysym.sym) {
 	  case SDLK_F12: // Sauve un screenshot
@@ -1261,7 +1209,7 @@ eMenu Menu::SDLMain_Score(bool EditScore)
 	    }
 	    break;
 	  default: // Prend les touches
-	    key=event.key.keysym.unicode&0x7F; // Prend le caracataire correspondant à la touche
+	    key=event.key.keysym.scancode&0x7F; // Prend le caracataire correspondant à la touche
 	    if(PosCur<79 && CharExiste(key)==true) { // Prend le caractaire
 	      Pref.Sco[NEdit].Name[PosCur]=key;
 	      Pref.Sco[NEdit].Name[PosCur+1]=0;
@@ -1301,8 +1249,8 @@ eMenu Menu::SDLMain_Score(bool EditScore)
     }
   
     // Echange les buffets video
-    SDL_Flip(sdlVideo);
-    NumEc=(NumEc+1)&1;
+	DoRender();
+	NumEc=(NumEc+1)&1;
     
   } while(true);
   

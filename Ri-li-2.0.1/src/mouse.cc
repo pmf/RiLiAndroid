@@ -21,8 +21,10 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include <iostream.h>
+
+#include <iostream>
 #include <stdio.h>
+#include <SDL.h>
 #include "mouse.h"
 #include "preference.h"
 #include "ecran.h"
@@ -30,6 +32,7 @@
 
 /*** Variables Globales ***/
 /**************************/
+extern SDL_Window *screen;
 extern Audio Sons;
 extern int Horloge;
 extern Ecran Ec[2];
@@ -53,7 +56,7 @@ void Mouse::InitStart(void)
   // Initialise les coordonnées de la sourie
   Px=400;
   Py=300;
-  SDL_WarpMouse(Px,Py);
+  SDL_WarpMouseInWindow(screen, Px,Py);
 }
 
 /*** Initialise un bebut d'utilisation ***/
@@ -82,7 +85,7 @@ void Mouse::GetEvent(SDL_Event &event,int &pPy)
 	if(Px>=tPy[i].DepX && Px<=tPy[i].FinX && Py>=tPy[i].DepY && Py<=tPy[i].FinY) 
 	  if(pPy!=tPy[i].Py) {
 	    pPy=tPy[i].Py;
-	    Sons.Play(sClic);
+	    //Sons.Play(sClic);
 	  }
 	i++;
       };
@@ -115,7 +118,7 @@ void Mouse::GetEvent(SDL_Event &event,int &pPy)
 	    if(Bo[i].Adr==NULL) { // Si doit fair une touche
 	      event.type=SDL_KEYDOWN;
 	      event.key.state=SDL_PRESSED;
-	      event.key.keysym.sym=(SDLKey)Bo[i].Valeur;
+	      event.key.keysym.sym=(SDL_Keycode)Bo[i].Valeur;
 	    }
 	    else { // Si doit changer une variable
 	      *(Bo[i].Adr)=Bo[i].Valeur;

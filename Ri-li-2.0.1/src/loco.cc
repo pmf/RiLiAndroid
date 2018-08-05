@@ -21,7 +21,7 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -234,7 +234,7 @@ void Loco::TestCase(float Dist,long DureeJeu,int *Tableau)
     // Test si sur une option
     switch(Tableau[T[PLoco].P]) {
     case C_Wagon: // Une nouvelle loco
-      Sons.Play(sWagon);
+      //Sons.Play(sWagon);
       Tableau[T[PLoco].P]=1; // efface l'option
       Pref.Score+=5;
       AddLoco(); // Ajoute une loco au azard
@@ -243,30 +243,30 @@ void Loco::TestCase(float Dist,long DureeJeu,int *Tableau)
       for(i=0;i<LT*HT;i++) if(Tableau[i]==C_Wagon) Gagne=false;
       if(Gagne) { 
 	Mort=Horloge+DUREE_PAUSE;
-	Sons.Play(sEnd);
+	//Sons.Play(sEnd);
       }
       break;
     case C_Allonge: // Alonge la loco
-      Sons.Play(sEtire);
+      //Sons.Play(sEtire);
       Tableau[T[PLoco].P]=1; // efface l'option
       Pref.Score+=20;
       if(Reduit>DureeJeu) Reduit=DureeJeu-1;
       else Alonge=DureeJeu+DUREE_ALONGE;
       break;
     case C_Reduit: // Si réduit la loco
-      Sons.Play(sReduit);
+      //Sons.Play(sReduit);
       Tableau[T[PLoco].P]=1; // efface l'option
       if(Alonge>DureeJeu) Alonge=DureeJeu-1;
       else Reduit=DureeJeu+DUREE_REDUIT;
       break;
     case C_Speed: // Si Vitesse
-      Sons.Play(sSpeed);
+      //Sons.Play(sSpeed);
       Tableau[T[PLoco].P]=1; // efface l'option
       Pref.Score+=30;
       Vitesse=DureeJeu+DUREE_VITESSE;
       break;
     case C_Live: // Si Vie
-      Sons.Play(sLive);
+      //Sons.Play(sLive);
       Tableau[T[PLoco].P]=1; // efface l'option
       Pref.NVie++;
       break;
@@ -283,7 +283,7 @@ void Loco::TestCase(float Dist,long DureeJeu,int *Tableau)
 
       // Si colition le signale
       if( Mort<Horloge && (Ec1<RAYON_TOUCHE || Ec2<=RAYON_TOUCHE) ) {
-	Sons.Play(sCrash);
+	//Sons.Play(sCrash);
 	Pref.NVie--;
 	Mort=Horloge+DUREE_PAUSE;
       }
@@ -354,7 +354,7 @@ void Loco::Avance(int Duree,long DureeJeu,int *Touche,int *Tableau)
     i=0; // Cherche la direction possible
     while(TestDir(Touche[i],Tableau)==false) i++;
     
-    Go(Touche[i]); // Fait avancer le loco suivant le désir du joueur
+    Go(Touche[i]); // Fait le loco suivant le désir du joueur
 
     DoFleche(Tableau,Touche); // Recherche la position de la futur intersection
 

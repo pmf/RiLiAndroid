@@ -24,8 +24,12 @@
 #ifndef _AUDIO_DOM_
 #define _AUDIO_DOM_
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+#include <SDL.h>
+//#include <SDL_mixer.h>
+
+// TODO: remove
+#define Mix_HaltMusic(...) (void*)NULL
+#define Mix_FreeMusic(...) (void*)NULL
 
 /*** Enumération des sons ***/
 /****************************/
@@ -66,8 +70,8 @@ class Audio {
   int N; // Nombre d'échantillon audio
   int NMus; // Numéro de la music en cours
   int MemoHorloge; // Mémorise l'horloge pour les clics
-  Mix_Chunk **Son; // Pointe sur les sons
-  Mix_Music *Music; // Pointe sur les musics
+  //Mix_Chunk **Son; // Pointe sur les sons
+  //Mix_Music *Music; // Pointe sur les musics
 };
 
 #endif
