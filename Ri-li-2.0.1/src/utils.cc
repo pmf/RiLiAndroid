@@ -1,7 +1,7 @@
 //      (_||_/       Utils.cc
 //      (    )       Fonctions divers
 //     ( o  0 )
-//-OOO°--(_)---°OOO---------------------------------------
+//-OOOï¿½--(_)---ï¿½OOO---------------------------------------
 //                   Copyright (C) 2006 By Dominique Roux-Serret 
 // .OOOo      oOOO.  roux-serret@ifrance.com
 //-(   )------(   )---------------------------------------
@@ -40,17 +40,17 @@
 /*** Variables globales ***/
 /**************************/
 extern sPreference Pref;
-#ifdef LINUX
+#if (defined(LINUX) || defined(ANDROID))
 extern char DefPath[]; // Chemin par defaut dans arg
 #endif
 
-/*** Définition générals ***/
+/*** Dï¿½finition gï¿½nï¿½rals ***/
 /***************************/
 #ifdef MAC_OSX
 #define MAC_LINUX
 #endif
 
-#ifdef LINUX
+#if (defined(LINUX) || defined(ANDROID))
 #define MAC_LINUX
 #endif
 
@@ -68,7 +68,7 @@ bool FileExiste(const char *Path)
 }
 
 
-/*** Charge un fichier en Mémoire ***/
+/*** Charge un fichier en Mï¿½moire ***/
 /************************************/
 #ifdef MAC_LINUX
 // Version linux
@@ -78,7 +78,7 @@ long ChargeFichier(const char *Path,unsigned char *&Buf)
 
   file=fopen(Path,"r");
   if(!file) {
-    cerr <<"ERREUR: Impossible d'ouvrir '"<<Path<<"'"<<endl;
+    std::cerr <<"ERREUR: Impossible d'ouvrir '"<<Path<<"'"<<std::endl;
     perror("fopen");
     return -1;
   }
@@ -89,12 +89,12 @@ long ChargeFichier(const char *Path,unsigned char *&Buf)
     return -1;
   }
 
-  long L=ftell(file); // récupère la longueur
+  long L=ftell(file); // rï¿½cupï¿½re la longueur
   fseek(file,0,0);
 
   Buf=new unsigned char [L+1];
   if(Buf==NULL) {
-    cerr <<"ERREUR: Memoire insuffisante!"<<endl;
+    std::cerr <<"ERREUR: Memoire insuffisante!"<<std::endl;
     fclose(file);
     return -1;
   }
@@ -105,7 +105,7 @@ long ChargeFichier(const char *Path,unsigned char *&Buf)
   while(Compt>1024) {
     AfficheChargeur();
     if( fread(Po,1,1024,file) != 1024 ) {
-      cerr <<"ERREUR de lecture du fichier '"<<Path<<"'"<<endl;
+      std::cerr <<"ERREUR de lecture du fichier '"<<Path<<"'"<<std::endl;
       perror("fread");
       fclose(file);
       delete [] Buf;
@@ -115,7 +115,7 @@ long ChargeFichier(const char *Path,unsigned char *&Buf)
     Po+=1024;
   }
   
-  if(Compt) { // Ne fait pas le test à cause d'un bug dans windows
+  if(Compt) { // Ne fait pas le test ï¿½ cause d'un bug dans windows
     fread(Po,1,(unsigned int)Compt,file);
   }
   
@@ -170,14 +170,14 @@ bool SauveFichier(const char *Path,char *Buf,long L)
   
   file=fopen(Path,"w");
   if(!file) {
-    cerr <<"ERREUR: Impossible d'ouvrir '"<<Path<<"'"<<endl;
+    std::cerr <<"ERREUR: Impossible d'ouvrir '"<<Path<<"'"<<std::endl;
     perror("fopen");
     return false;
   }
   
   while(L>512) {
     if( fwrite(Buf,1,512,file) != 512 ) {
-      cerr <<"ERREUR d'ecriture du fichier '"<<Path<<"'"<<endl;
+      std::cerr <<"ERREUR d'ecriture du fichier '"<<Path<<"'"<<std::endl;
       perror("fwrite");
       fclose(file);
       return false;
@@ -188,7 +188,7 @@ bool SauveFichier(const char *Path,char *Buf,long L)
 
   if(L>0) {
     if( fwrite(Buf,1,(size_t)L,file) != (size_t)L ) {
-      cerr <<"ERREUR d'ecriture du fichier '"<<Path<<"'"<<endl;
+      std::cerr <<"ERREUR d'ecriture du fichier '"<<Path<<"'"<<std::endl;
       perror("fwrite");
       fclose(file);
       return false;
@@ -209,7 +209,7 @@ bool SauveFichier(const char *Path,char *Buf,long L)
 
   file=_lcreat(Path,0);
   if(!file) {
-    std::cerr <<"ERREUR: Impossible de créer le fichier '"<<Path<<"'"<<std::endl;
+    std::cerr <<"ERREUR: Impossible de crï¿½er le fichier '"<<Path<<"'"<<std::endl;
     return false;
   }
   
@@ -217,7 +217,7 @@ bool SauveFichier(const char *Path,char *Buf,long L)
   _lclose(file);
 
   if(Lec!=L) {
-    std::cerr <<"Problème d'ecriture du fichier '"<<Path<<"' ecris="<<Lec<<" au lieux de ="<<L<<std::endl;
+    std::cerr <<"Problï¿½me d'ecriture du fichier '"<<Path<<"' ecris="<<Lec<<" au lieux de ="<<L<<std::endl;
     return false;
   }
 
@@ -227,7 +227,7 @@ bool SauveFichier(const char *Path,char *Buf,long L)
 
 /*** Met le bon chemin pour charger un fichier ***/
 /*************************************************/
-#if defined(LINUX) && !defined(__AMIGAOS4__)
+#if (defined(LINUX) || defined(ANDROID)) && !defined(__AMIGAOS4__)
 // Version Linux
 void GetPath(char *Path)
 {
@@ -240,8 +240,8 @@ void GetPath(char *Path)
     if(FileExiste(Path)) return;
   }
 
-  sprintf(Path,"%s/%s",DATA_DIR,Provi);
-  if(FileExiste(Path)) return;
+  //sprintf(Path,"%s/%s",DATA_DIR,Provi);
+  //if(FileExiste(Path)) return;
   sprintf(Path,"./%s",Provi);
   if(FileExiste(Path)) return;
   sprintf(Path,"/usr/local/share/Ri-li/%s",Provi);
@@ -251,7 +251,7 @@ void GetPath(char *Path)
   sprintf(Path,"/usr/share/games/Ri-li/%s",Provi);
   if(FileExiste(Path)) return;
   
-  cerr <<"Impossible de trouver le fichier '"<<Provi<<endl;
+  std::cerr <<"Impossible de trouver le fichier '"<<Provi<<std::endl;
   exit(-1);
 }
 #endif
@@ -267,7 +267,7 @@ void GetPath(char *Path)
   sprintf(Path,"PROGDIR:%s",Provi);
   if(FileExiste(Path)) return;
   
-  cerr <<"Impossible de trouver le fichier '"<<Path<<endl;
+  std::cerr <<"Impossible de trouver le fichier '"<<Path<<std::endl;
   exit(-1);
 }
 #endif
@@ -283,7 +283,7 @@ void GetPath(char *Path)
   sprintf(Path,"Ri-li.app/Contents/Resources/%s",Provi);
   if(FileExiste(Path)) return;
   
-  cerr <<"Impossible de trouver le fichier '"<<Path<<endl;
+  std::cerr <<"Impossible de trouver le fichier '"<<Path<<std::endl;
   exit(-1);
 }
 #endif
@@ -304,14 +304,14 @@ void GetPath(char *Path)
 }
 #endif
 
-/*** Charge les préferences ***/
+/*** Charge les prï¿½ferences ***/
 /******************************/
 bool LoadPref(void)
 {
   int L;
   unsigned char *Provi;
   
-#if defined(LINUX) && !defined(__AMIGAOS4__)
+#if (defined(LINUX) || defined(ANDROID)) && !defined(__AMIGAOS4__)
   char PathPref[512];
   char *Env=getenv("HOME");
   sprintf(PathPref,"%s/.ri-li.pref",Env);
@@ -348,7 +348,7 @@ bool LoadPref(void)
 /*****************************/
 void SauvePref(void)
 {  
-#if defined(LINUX) && !defined(__AMIGAOS4__)
+#if (defined(LINUX) || defined(ANDROID)) && !defined(__AMIGAOS4__)
   char Provi[512];
   char *Env=getenv("HOME");
   sprintf(Provi,"%s/.ri-li.pref",Env);

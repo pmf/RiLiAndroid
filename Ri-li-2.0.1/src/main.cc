@@ -71,7 +71,7 @@ void DoRender()
 	SDL_RenderPresent(renderer);
 }
 
-#ifdef LINUX
+#if (defined(LINUX) || defined(ANDROID))
 char DefPath[256]; // Chemin par defaut dans arg
 #endif
 
@@ -79,7 +79,7 @@ char DefPath[256]; // Chemin par defaut dans arg
 				   /**********************************/
 void InitPref(void)
 {
-#ifdef LINUX
+#if (defined(LINUX) || defined(ANDROID))
 	DefPath[0] = 0;
 #endif
 
@@ -117,7 +117,7 @@ int main(int narg, char *argv[])
 
 	// Initialuse les préferences
 	InitPref();
-#ifdef LINUX
+#if (defined(LINUX) || defined(ANDROID))
 	if (narg>1) strcpy(DefPath, argv[1]);
 #endif
 
@@ -131,11 +131,12 @@ int main(int narg, char *argv[])
 
 
 	// Demande la resolution Video
-#ifndef LINUX
+#if (!defined(LINUX) && !defined(ANDROID))
 	int vOption = SDL_WINDOW_OPENGL;
 #else
 #ifndef __AMIGAOS4__
-	int vOption = SDL_SWSURFACE | SDL_DOUBLEBUF;
+	//int vOption = SDL_SWSURFACE | SDL_DOUBLEBUF;
+	int vOption = SDL_WINDOW_OPENGL;
 #else
 	int vOption = SDL_SWSURFACE;
 #endif
